@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My WebSocket</title>
+    <script src="jquery-2.1.0.js"></script>
+</head>
+<body>
+<button id="open">Open</button>
+<br/>
+<input type="text" id="text">
+<button id="send">Send</button>
+<br/>
+<button id="close">Close</button>
+<div id="message">
+</div>
+</body>
+
+<script type="text/javascript">
+    $(function () {
+        var websocket = null;
+
+        //开起连接
+        $("#open").click(function () {
+            //判断当前浏览器是否支持WebSocket
+            if ('WebSocket' in window) {
+                websocket = new WebSocket("ws://localhost:8080/websocket");
+            } else {
+                alert('Not support websocket')
+            }
+
+            //连接发生错误的回调方法
+            websocket.onerror = function (event) {
+                $("#message").html("Connect error!")
+            };
+
+            //连接成功建立的回调方法
+            websocket.onopen = function (event) {
+                $("#message").html("Connect successfully!");
+            }
+
+            //接收到消息的回调方法
+            websocket.onmessage = function (event) {
+                $("#message").html("服务端消息：" + event.data);
+            }
+        })
+
+        //关闭连接
+        $("#close").click(function () {
+            websocket.close();
+            $("#message").html("Connect closing!")
+        })
+
+        //发送消息
+        $("#send").click(function () {
+            var message = $("#text").val();
+            websocket.send(message);
+            $("#message").html("Send successfully!");
+        })
+    })
+</script>
+</html>

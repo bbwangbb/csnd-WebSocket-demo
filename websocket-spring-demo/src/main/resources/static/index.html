@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="webjars/jquery/3.1.0/jquery.min.js"></script>
+    <script src="webjars/sockjs-client/1.0.2/sockjs.min.js"></script>
+    <script src="webjars/stomp-websocket/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+<button id="open">Open</button>
+<br/>
+<button id="send">Send</button>
+<br/>
+<button id="close">Close</button>
+<div id="message">
+</div>
+<script>
+    $(function () {
+        var socket = null;
+        var stompClient = null;
+        //开起连接
+        $("#open").click(function () {
+            //创建 websocket对象
+            socket = new SockJS('/spring-websocket');//固定
+            stompClient = Stomp.over(socket);
+
+            //连接成功的回调函数
+            stompClient.connect({username : 'bb'}, function (frame) {
+                //...
+                //打印连接状态
+                console.log('Connected: ' + frame);
+                $("#message").html("连接成功！")
+                /*
+                    3.连接成功后订阅目标地址
+                        client.subscribe(destination, callback)
+                            destination：目标地址
+                            callback：有人向这个地址发送广播该回调函数就会执行
+                 */
+                stompClient.subscribe('/topic/bb', function (resp) {//DB读取
+                    $("#message").html("服务端回复：" + resp.body)
+                });
+                //可以订阅多个，每个写一次方法即可
+                // stompClient.subscribe('/topic/cc', function (resp) {//DB读取
+                //     $("#message").html("服务端回复：" + resp.body)
+                // });
+            });
+        })
+
+        //关闭连接
+        $("#close").click(function () {
+            if (stompClient !== null) {
+                stompClient.disconnect();
+                $("#message").html("连接关闭！")
+            }
+        })
+
+        //发送消息
+        $("#send").click(function () {
+            /*
+                client.send(destination, {}, body);
+                destination：目标地址
+                {}：请求头
+                body：请求信息（JSON格式）
+             */
+            stompClient.send("/app/testWebSocket", {}, JSON.stringify({message : 'Hi, server!'}));
+        })
+
+    })
+</script>
+</body>
+</html>
